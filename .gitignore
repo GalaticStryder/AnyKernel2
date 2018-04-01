@@ -2,3 +2,4 @@ Image.gz-dtb
 banner
 autogen.sh
 formula.txt
+*.patch
