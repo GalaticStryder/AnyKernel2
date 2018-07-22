@@ -4,7 +4,9 @@
 ## AnyKernel setup
 # begin properties
 properties() { '
-kernel.string=ExampleKernel by osm0sis @ xda-developers
+kernel.string=Lambda Kernel
+kernel.vector=Plain
+kernel.version=FALLBACK / 07222018
 do.devicecheck=0
 do.modules=0
 do.cleanup=1
