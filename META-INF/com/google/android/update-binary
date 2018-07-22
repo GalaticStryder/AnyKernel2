@@ -60,6 +60,8 @@ mkdir -p /tmp/anykernel/bin;
 cd /tmp/anykernel;
 unzip -o "$ZIPFILE";
 if [ -f $AUTOGEN ]; then
+  ui_print "Fetching properties from autogen.sh...";
+  ui_print " ";
   PROPFILE=$AUTOGEN;
 fi;
 if [ $? != 0 -o -z "$(ls /tmp/anykernel/tools)" ]; then
@@ -74,20 +76,24 @@ if [ -f /tmp/anykernel/banner ]; then
     ui_print "$line";
   done < /tmp/anykernel/banner;
   ui_print " ";
+else
+  ui_print "  /  _  _ _  /_  _/_  ";
+  ui_print " /_,/_|/ / //_//_//_| ";
   ui_print " ";
 fi;
 
-ui_print "$(file_getprop $PROPFILE kernel.string)";
+ui_print "Welcome to $(file_getprop $PROPFILE kernel.string)!";
 if [ -f /tmp/anykernel/version ]; then
-  ui_print " ";
   ui_print "$(cat /tmp/anykernel/version)";
-  ui_print " ";
+else
+  ui_print "Vector: $(file_getprop $PROPFILE kernel.vector)";
+  ui_print "Version: $(file_getprop $PROPFILE kernel.version)";
 fi;
 ui_print " ";
 ui_print "AnyKernel2 by osm0sis @ xda-developers";
 ui_print " ";
-ui_print " ";
 
+ui_print "Mounting system, vendor and data partitions...";
 unmount_all;
 mount -o ro -t auto /system;
 mount -o ro -t auto /vendor 2>/dev/null;
@@ -102,14 +108,15 @@ if [ "$(file_getprop $PROPFILE do.devicecheck)" == 1 ]; then
     testname="$(file_getprop $PROPFILE device.name$i)";
     test "$testname" || break;
     if [ "$device" == "$testname" -o "$product" == "$testname" ]; then
-      ui_print "$testname";
+      ui_print "Your $testname is supported.";
       match=1;
+      ui_print "Passed!";
       break;
     fi;
   done;
   ui_print " ";
   if [ "$match" != 1 ]; then
-    abort "Unsupported device. Aborting...";
+    abort "Sorry, your device is not supported. Aborting...";
   fi;
 fi;
 
@@ -126,13 +133,14 @@ savedpre="$LD_PRELOAD";
 unset LD_LIBRARY_PATH;
 unset LD_PRELOAD;
 
-ui_print "Installing...";
+ui_print "Setting up busybox binary...";
 for i in $($bb --list); do
   $bb ln -s $bb /tmp/anykernel/bin/$i;
 done;
 if [ $? != 0 -o -z "$(ls /tmp/anykernel/bin)" ]; then
   abort "Recovery busybox setup failed. Aborting...";
 fi;
+ui_print "Running installation scripts...";
 PATH="/tmp/anykernel/bin:$PATH" $bb ash $ANYKERNEL $2;
 if [ $? != "0" ]; then
   abort;
@@ -140,7 +148,7 @@ fi;
 
 if [ "$(file_getprop $PROPFILE do.modules)" == 1 ]; then
   ui_print " ";
-  ui_print "Pushing modules...";
+  ui_print "Installing Kernel modules...";
   mount -o rw,remount -t auto /system;
   mount -o rw,remount -t auto /vendor 2>/dev/null;
   cd /tmp/anykernel/modules;
@@ -167,6 +175,7 @@ fi;
 debugging;
 
 if [ "$(file_getprop $PROPFILE do.cleanup)" == 1 ]; then
+  ui_print "Cleaning up installation files...";
   cleanup;
 fi;
 
@@ -176,5 +185,6 @@ test "$savedpre" && export LD_PRELOAD="$savedpre";
 unmount_all;
 
 ui_print " ";
+ui_print "Enjoy your brand new Kernel!";
+ui_print "Don't forget to K.I.S.S.";
 ui_print " ";
-ui_print "Done!";
