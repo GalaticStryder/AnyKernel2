@@ -5,6 +5,7 @@
 OUTFD=/proc/self/fd/$2;
 ZIPFILE="$3";
 DIR=`dirname "$ZIPFILE"`;
+AUTOGEN=/tmp/anykernel/autogen.sh;
 ANYKERNEL=/tmp/anykernel/anykernel.sh;
 PROPFILE=$ANYKERNEL;
 
@@ -58,6 +59,9 @@ cleanup;
 mkdir -p /tmp/anykernel/bin;
 cd /tmp/anykernel;
 unzip -o "$ZIPFILE";
+if [ -f $AUTOGEN ]; then
+  PROPFILE=$AUTOGEN;
+fi;
 if [ $? != 0 -o -z "$(ls /tmp/anykernel/tools)" ]; then
   abort "Unzip failed. Aborting...";
 fi;
