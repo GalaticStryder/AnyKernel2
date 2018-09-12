@@ -84,7 +84,9 @@ fi;
 
 ui_print "Welcome to $(file_getprop $PROPFILE kernel.string)!";
 if [ -f /tmp/anykernel/version ]; then
-  ui_print "$(cat /tmp/anykernel/version)";
+  while IFS='' read -r line || $bb [[ -n "$line" ]]; do
+    ui_print "$line";
+  done < /tmp/anykernel/version;
 else
   ui_print "Vector: $(file_getprop $PROPFILE kernel.vector)";
   ui_print "Version: $(file_getprop $PROPFILE kernel.version)";
