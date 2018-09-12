@@ -7,6 +7,8 @@ properties() { '
 kernel.string=Lambda Kernel
 kernel.vector=Plain
 kernel.version=FALLBACK / 07222018
+compiler.clang=None
+compiler.gcc=None
 do.devicecheck=0
 do.modules=0
 do.cleanup=1

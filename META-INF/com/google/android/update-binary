@@ -89,6 +89,12 @@ else
   ui_print "Vector: $(file_getprop $PROPFILE kernel.vector)";
   ui_print "Version: $(file_getprop $PROPFILE kernel.version)";
 fi;
+if [ ! -z "$(file_getprop $PROPFILE compiler.clang)" ]; then
+  ui_print "Compiler: $(file_getprop $PROPFILE compiler.clang)";
+  ui_print "Assembler: GCC $(file_getprop $PROPFILE compiler.gcc)";
+else
+  ui_print "Compiler: GCC $(file_getprop $PROPFILE compiler.gcc)";
+fi;
 ui_print " ";
 ui_print "AnyKernel2 by osm0sis @ xda-developers";
 ui_print " ";
