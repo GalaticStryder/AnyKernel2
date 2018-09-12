@@ -37,7 +37,35 @@ chown -R root:root $ramdisk/*;
 dump_boot;
 
 # begin ramdisk changes
+# sepolicy
+$bin/magiskpolicy --load sepolicy --save sepolicy \
+    "allow qti_init_shell kmsg_device chr_file { read write open } " \
+    "allow qti_init_shell sysfs_kgsl file write" \
+    "allow qti_init_shell sysfs_cpu_boost file write" \
+    "allow qti_init_shell sysfs dir rw_file_perms" \
+    "allow qti_init_shell sysfs file rw_file_perms" \
+    "allow qti_init_shell kernel system syslog_read" \
+    "allow qti_init_shell default_prop property_service set" \
+    ;
 
+# sepolicy_debug
+$bin/magiskpolicy --load sepolicy_debug --save sepolicy_debug \
+    "allow qti_init_shell kmsg_device chr_file { read write open } " \
+    "allow qti_init_shell sysfs_kgsl file write" \
+    "allow qti_init_shell sysfs_cpu_boost file write" \
+    "allow qti_init_shell sysfs dir rw_file_perms" \
+    "allow qti_init_shell sysfs file rw_file_perms" \
+    "allow qti_init_shell kernel system syslog_read" \
+    "allow qti_init_shell default_prop property_service set" \
+    ;
+
+patch_prop default.prop "ro.lambda.device" "$(file_getprop /tmp/anykernel/autogen.sh device.name1)";
+patch_prop default.prop "ro.lambda.vector" "$(file_getprop /tmp/anykernel/autogen.sh kernel.vector)";
+
+# init.qcom.power.rc
+backup_file init.qcom.power.rc;
+ui_print "Injecting custom post-boot tuning script...";
+append_file init.qcom.power.rc "lambda-post_boot" init.script.patch;
 # end ramdisk changes
 
 write_boot;
