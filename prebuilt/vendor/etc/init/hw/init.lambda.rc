@@ -1,0 +1,12 @@
+# LK
+service lambda-post-boot /system/bin/sh /sbin/lambda-post_boot.sh
+    class late_start
+    user root
+    group root
+    seclabel u:object_r:qti_init_shell_exec:s0
+    oneshot
+    disabled
+
+on property:sys.boot_completed=1
+    start lambda-post-boot
+

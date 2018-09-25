@@ -23,6 +23,7 @@ device.name5=
 # shell variables
 block=boot;
 is_slot_device=0;
+is_treble_device=0;
 ramdisk_compression=auto;
 
 ## AnyKernel methods (DO NOT CHANGE)
@@ -39,6 +40,13 @@ chown -R root:root $ramdisk/*;
 dump_boot;
 
 # begin ramdisk changes
+# treble
+if [ -f /vendor/build.prop ]; then
+  is_treble_device=1;
+  ui_print "Treble support is present, reconfiguring...";
+  mount -o rw,remount -t auto /vendor 2>/dev/null;
+fi;
+
 # sepolicy
 $bin/magiskpolicy --load sepolicy --save sepolicy \
     "allow qti_init_shell kmsg_device chr_file { read write open } " \
@@ -61,13 +69,36 @@ $bin/magiskpolicy --load sepolicy_debug --save sepolicy_debug \
     "allow qti_init_shell default_prop property_service set" \
     ;
 
-patch_prop default.prop "ro.lambda.device" "$(file_getprop /tmp/anykernel/autogen.sh device.name1)";
-patch_prop default.prop "ro.lambda.vector" "$(file_getprop /tmp/anykernel/autogen.sh kernel.vector)";
+# default.prop
+if [ $is_treble_device == 1 ]; then
+  ui_print "[Treble] Patching custom Lambda properties...";
+  patch_prop /vendor/default.prop "ro.lambda.device" "$(file_getprop /tmp/anykernel/autogen.sh device.name1)";
+  patch_prop /vendor/default.prop "ro.lambda.vector" "$(file_getprop /tmp/anykernel/autogen.sh kernel.vector)";
+else
+  ui_print "Patching custom Lambda properties...";
+  patch_prop default.prop "ro.lambda.device" "$(file_getprop /tmp/anykernel/autogen.sh device.name1)";
+  patch_prop default.prop "ro.lambda.vector" "$(file_getprop /tmp/anykernel/autogen.sh kernel.vector)";
+fi;
 
-# init.qcom.power.rc
-backup_file init.qcom.power.rc;
-ui_print "Injecting custom post-boot tuning script...";
-append_file init.qcom.power.rc "lambda-post_boot" init.script.patch;
+# init.qcom.rc / init.qcom.power.rc
+if [ $is_treble_device == 1 ]; then
+  backup_file /vendor/etc/init/hw/init.qcom.rc;
+  ui_print "[Treble] Injecting custom post-boot tuning script...";
+  cp -f $prebuilt/vendor/etc/init/hw/init.lambda.rc /vendor/etc/init/hw/init.lambda.rc;
+  #cp -f $prebuilt/vendor/bin/init.qcom.post_boot.sh /vendor/bin/init.qcom.post_boot.sh;
+  #chown root:shell /vendor/bin/init.qcom.post_boot.sh;
+  #ln -sf /vendor/bin/init.qcom.post_boot.sh /vendor/bin/lambda-post_boot.sh
+  insert_line /vendor/etc/init/hw/init.qcom.rc "init.lambda.rc" after "import /vendor/etc/init/hw/init.device.rc" "import /vendor/etc/init/hw/init.lambda.rc";
+else
+  backup_file init.qcom.power.rc;
+  ui_print "Injecting custom post-boot tuning script...";
+  append_file init.qcom.power.rc "lambda-post_boot" init.script.patch;
+fi;
+
+# umount /vendor, if treble
+if [ $is_treble_device == 1 ]; then
+  mount -o ro,remount -t auto /vendor 2>/dev/null;
+fi;
 # end ramdisk changes
 
 write_boot;

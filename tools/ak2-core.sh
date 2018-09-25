@@ -4,6 +4,7 @@ ramdisk=/tmp/anykernel/ramdisk;
 bin=/tmp/anykernel/tools;
 split_img=/tmp/anykernel/split_img;
 patch=/tmp/anykernel/patch;
+prebuilt=/tmp/anykernel/prebuilt;
 
 chmod -R 755 $bin;
 mkdir -p $split_img;
